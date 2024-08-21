@@ -13,6 +13,7 @@ import {
 } from "react-router-dom";
 import RoomJoinPage from "./RoomJoinPage";
 import CreateRoomPage from "./CreateRoomPage";
+import Room from "./Room";
 import { RoomWrapper } from "./Room";
 
 const HomePage = () => {
@@ -28,10 +29,10 @@ const HomePage = () => {
     fetchRoomCode();
   }, []);
 
-  const renderHomePage = () => {
+  const renderHomePage = () => (
     <Grid container spacing={3}>
       <Grid item xs={12} align="center">
-        <Typography variant="h3" compact="h3">
+        <Typography variant="h3" component="h3">
           House Party
         </Typography>
       </Grid>
@@ -45,26 +46,32 @@ const HomePage = () => {
           </Button>
         </ButtonGroup>
       </Grid>
-    </Grid>;
-  };
+    </Grid>
+  );
+
+  const clearRoomCode = () => {
+    setRoomCode(null);
+  }
 
   return (
     <Router>
       <Routes>
         <Route
-          exact
           path="/"
           element={
             roomCode ? (
               <Navigate to={`/room/${roomCode}`} />
             ) : (
-              renderHomePage()
+              renderHomePage() // This should correctly render the homepage if no room code
             )
           }
         />
         <Route path="/join" element={<RoomJoinPage />} />
         <Route path="/create" element={<CreateRoomPage />} />
-        <Route path="/room/:roomCode" element={<RoomWrapper />} />
+        <Route 
+          path="/room/:roomCode" 
+          element={<Room leaveRoomCallback={clearRoomCode} />} 
+        />
       </Routes>
     </Router>
   );

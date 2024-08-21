@@ -1,48 +1,78 @@
-import React, {Component} from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom"; // Import useParams and useNavigate
+import { Grid, Button, Typography } from "@material-ui/core";
 
-export default class Room extends Component {
-    constructor(props){
-        super(props);
-        this.state = {
-            votesToSkip: 2,
-            guestCanPause: false,
-            isHost: false,
-        }
-        this.roomCode = this.props.roomCode;
-        this.getRoomDetails();
-    }
+const Room = ({ leaveRoomCallback }) => {
+  const { roomCode } = useParams(); // Access the room code from the URL parameters
+  const navigate = useNavigate(); // Use useNavigate instead of history.push
+  const [votesToSkip, setVotesToSkip] = useState(2);
+  const [guestCanPause, setGuestCanPause] = useState(false);
+  const [isHost, setIsHost] = useState(false);
 
-    getRoomDetails() {
-        fetch('/api/get-room' + '?code=' + this.roomCode)
-        .then((response)=> response.json())
-        .then((data)=> {
-            this.setState({
-                votesToSkip: data.votes_to_skip,
-                guestCanPause: data.guest_can_pause,
-                isHost: data.is_host,
-            })
+  useEffect(() => {
+    const getRoomDetails = () => {
+      fetch("/api/get-room?code=" + roomCode)
+        .then((response) => {
+          if (!response.ok) {
+            leaveRoomCallback();
+            navigate("/"); // Use navigate instead of history.push
+          }
+          return response.json();
+        })
+        .then((data) => {
+          setVotesToSkip(data.votes_to_skip);
+          setGuestCanPause(data.guest_can_pause);
+          setIsHost(data.is_host);
         });
-    }
+    };
 
-    render(){
-        console.log("Room Component Rendered");
+    getRoomDetails();
+  }, [roomCode, navigate, leaveRoomCallback]);
 
-        return (
-            <div>
-                <h3>{this.roomCode}</h3>
-                <p>Votes: {this.state.votesToSkip}</p>
-                <p>Guest Can Pause: {this.state.guestCanPause.toString()}</p>
-                <p>Host: {this.state.isHost.toString()}</p>
-            </div>
-        )
-    }
-}
+  const leaveButtonPressed = () => {
+    const requestOptions = {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    };
+    fetch("/api/leave-room", requestOptions).then(() => {
+      leaveRoomCallback();
+      navigate("/"); // Use navigate instead of history.push
+    });
+  };
 
-function RoomWrapper() {
-    const { roomCode } = useParams();
-    console.log("RoomWrapper: roomCode:", roomCode);
-    return <Room roomCode={roomCode} />;
-}
+  return (
+    <Grid container spacing={1}>
+      <Grid item xs={12} align="center">
+        <Typography variant="h4" component="h4">
+          Code: {roomCode}
+        </Typography>
+      </Grid>
+      <Grid item xs={12} align="center">
+        <Typography variant="h6" component="h6">
+          Votes: {votesToSkip}
+        </Typography>
+      </Grid>
+      <Grid item xs={12} align="center">
+        <Typography variant="h6" component="h6">
+          Guest Can Pause: {guestCanPause.toString()}
+        </Typography>
+      </Grid>
+      <Grid item xs={12} align="center">
+        <Typography variant="h6" component="h6">
+          Host: {isHost.toString()}
+        </Typography>
+      </Grid>
+      <Grid item xs={12} align="center">
+        <Button
+          variant="contained"
+          color="secondary"
+          onClick={leaveButtonPressed}
+        >
+          Leave Room
+        </Button>
+      </Grid>
+    </Grid>
+  );
+};
 
-export {Room, RoomWrapper}
+export default Room;
