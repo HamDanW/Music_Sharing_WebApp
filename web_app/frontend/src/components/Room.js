@@ -11,23 +11,23 @@ const Room = ({ leaveRoomCallback }) => {
   const [isHost, setIsHost] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
-  useEffect(() => {
-    const getRoomDetails = () => {
-      fetch("/api/get-room?code=" + roomCode)
-        .then((response) => {
-          if (!response.ok) {
-            leaveRoomCallback();
-            navigate("/"); // Use navigate instead of history.push
-          }
-          return response.json();
-        })
-        .then((data) => {
-          setVotesToSkip(data.votes_to_skip);
-          setGuestCanPause(data.guest_can_pause);
-          setIsHost(data.is_host);
-        });
-    };
+  const getRoomDetails = () => {
+    fetch("/api/get-room?code=" + roomCode)
+      .then((response) => {
+        if (!response.ok) {
+          leaveRoomCallback();
+          navigate("/"); // Use navigate instead of history.push
+        }
+        return response.json();
+      })
+      .then((data) => {
+        setVotesToSkip(data.votes_to_skip);
+        setGuestCanPause(data.guest_can_pause);
+        setIsHost(data.is_host);
+      });
+  };
 
+  useEffect(() => {
     getRoomDetails();
   }, [roomCode, navigate, leaveRoomCallback]);
 
@@ -58,7 +58,7 @@ const Room = ({ leaveRoomCallback }) => {
           votesToSkip={votesToSkip} 
           guestCanPause={guestCanPause}
           roomCode={roomCode}
-          updateCallback={()=>{}}
+          updateCallback={getRoomDetails}
         />
       </Grid>
       <Grid item xs={12} align="center">
