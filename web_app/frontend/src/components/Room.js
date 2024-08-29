@@ -10,13 +10,14 @@ const Room = ({ leaveRoomCallback }) => {
   const [guestCanPause, setGuestCanPause] = useState(false);
   const [isHost, setIsHost] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [spotifyAuthenticated, setSpotifyAuthenticated] = useState(false);
 
   const getRoomDetails = () => {
-    fetch("/api/get-room?code=" + roomCode)
+    fetch(`/api/get-room?code=${roomCode}`)
       .then((response) => {
         if (!response.ok) {
           leaveRoomCallback();
-          navigate("/"); // Use navigate instead of history.push
+          navigate("/");
         }
         return response.json();
       })
@@ -24,12 +25,30 @@ const Room = ({ leaveRoomCallback }) => {
         setVotesToSkip(data.votes_to_skip);
         setGuestCanPause(data.guest_can_pause);
         setIsHost(data.is_host);
+        if (data.is_host) {
+          authenticateSpotify();
+        }
       });
   };
 
   useEffect(() => {
     getRoomDetails();
   }, [roomCode, navigate, leaveRoomCallback]);
+
+  const authenticateSpotify = () => {
+    fetch('/spotify/is-authenticated')
+      .then(response => response.json())
+      .then(data => {
+        setSpotifyAuthenticated(data.status);
+        if (!data.status) {
+          fetch('/spotify/get-auth-url')
+            .then(response => response.json())
+            .then(data => {
+              window.location.replace(data.url);
+            });
+        }
+      });
+  };
 
   const leaveButtonPressed = () => {
     const requestOptions = {
