@@ -1,2 +1,5 @@
-
+.node
+web_app/frontend/node_modules/
+__pycache__/
+**/node_modules
 web_app/spotify/credentials.py
